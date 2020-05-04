@@ -1,0 +1,65 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: "Create Classic load balancer with the EC2 created in private subnets"
+Parameters:
+  PublicSubnet1:
+    Description: Public Subnet (AZ1)
+    Type: String
+  PublicSubnet2:
+    Description: Public Subnet (AZ2)
+    Type: String
+  EC2Web1:
+    Description: EC2 Website (AZ1)
+    Type: String
+  EC2Web2:
+    Description: EC2 Website (AZ2)
+    Type: String
+  SecurityGroup:
+    Description: SecurityGroup Name
+    Type: String
+
+  LBName:
+    Description: LoadBalancer Name
+    Type: String
+    Default: lb-pro2
+
+Resources:
+  ElasticLoadBalancer:
+    Type: AWS::ElasticLoadBalancing::LoadBalancer
+    Properties:
+      Listeners:
+      - LoadBalancerPort: 80
+        InstancePort: 80
+        Protocol: HTTP
+      - LoadBalancerPort: 3000
+        InstancePort: 3000
+        Protocol: HTTP
+      HealthCheck:
+        Target:
+          Fn::Join:
+          - ''
+          - - 'HTTP:'
+            - '3000'
+            - "/index"
+        HealthyThreshold: 3
+        UnhealthyThreshold: 5
+        Interval: 30
+        Timeout: 5
+      Subnets:
+      - !Ref PublicSubnet1
+      - !Ref PublicSubnet2
+      Instances: [!Ref 'EC2Web1', !Ref 'EC2Web2']
+      SecurityGroups: 
+      - !Ref SecurityGroup
+      Tags:
+        - Key: Name
+          Value: !Ref LBName
+        - Key: Application
+          Value: !Ref "AWS::StackName"
+
+Outputs:
+  LBId:
+    Description: "LBId of LB"
+    Value: !Ref ElasticLoadBalancer
+    Export:
+      Name: !Sub "${AWS::Region}-${AWS::StackName}-LoadBalancer"

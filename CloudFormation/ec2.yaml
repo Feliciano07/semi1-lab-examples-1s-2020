@@ -1,0 +1,74 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: "Create 2 EC2 in the private subnets with a security group configured"
+Parameters:
+  PublicSubnet1:
+    Description: Public Subnet (AZ1)
+    Type: String
+  PublicSubnet2:
+    Description: Public Subnet (AZ2)
+    Type: String
+  SecurityGroup:
+    Description: SecurityGroup Name
+    Type: String
+
+  KeyName:
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the instance
+    Type: AWS::EC2::KeyPair::KeyName
+    Default: semi1-1
+    ConstraintDescription: must be the name of an existing EC2 KeyPair.
+  InstanceType:
+    Description: WebServer EC2 instance type
+    Type: String
+    Default: t2.micro
+    AllowedValues: [t2.micro]
+    ConstraintDescription: must be a valid EC2 instance type.
+  WebsiteAmiId:
+    Type: String
+    Default: ami-020ae6015edbf7f25 #AM ID
+  EC2Website1Name:
+    Type: String
+    Default: ec2_1_pro2
+  EC2Website2Name:
+    Type: String
+    Default: ec2_2_pro2
+    
+Resources:
+  EC2InstanceWebsite1:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstanceType
+      #SecurityGroups: [!Ref 'SecurityGroup']
+      KeyName: !Ref KeyName
+      ImageId: !Ref WebsiteAmiId
+      SubnetId: !Ref PublicSubnet1
+      Tags:
+        - Key: Name
+          Value: !Ref EC2Website1Name
+        - Key: Application
+          Value: !Ref "AWS::StackName"
+  EC2InstanceWebsite2:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstanceType
+      #SecurityGroups: [!Ref 'SecurityGroup']
+      KeyName: !Ref KeyName
+      ImageId: !Ref WebsiteAmiId
+      SubnetId: !Ref PublicSubnet2
+      Tags:
+        - Key: Name
+          Value: !Ref EC2Website2Name
+        - Key: Application
+          Value: !Ref "AWS::StackName"
+
+Outputs:
+  EC2Web1:
+    Description: EC2 Website (AZ1) 
+    Value: !Ref EC2InstanceWebsite1
+    Export: 
+      Name: !Sub "${AWS::Region}-${AWS::StackName}-EC2Web1"
+  EC2Web2:
+    Description: EC2 Website (AZ2) 
+    Value: !Ref EC2InstanceWebsite2
+    Export: 
+      Name: !Sub "${AWS::Region}-${AWS::StackName}-EC2Web2"

@@ -1,0 +1,6 @@
+node_modules/
+package-lock.json
+aws_config.json
+db_credentials.json
+s3_credentials.json
+aws_keys.js
